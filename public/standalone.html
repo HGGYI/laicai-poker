@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>来财 - 单机离线打牌记账</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    /* 离线单机独立模式微调 */
+    .offline-tag {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(245, 183, 46, 0.2);
+      color: var(--gold-300);
+      border: 1px solid rgba(245, 183, 46, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span style="font-size: 24px;">🀄</span>
+        <span class="brand-name">來財 (单机离线版)</span>
+      </div>
+      <span class="offline-tag">离线随时记</span>
+    </header>
+
+    <main class="view-container">
+      <!-- 玩家管理添加栏 -->
+      <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,232,133,0.15);">
+        <div style="font-size: 13px; font-weight: bold; color: var(--gold-200); margin-bottom: 8px;">添加牌友玩家 (默认0元)：</div>
+        <div class="input-row">
+          <input type="text" id="offline-name-input" class="custom-input" placeholder="输入玩家名字 (如: 东哥)" maxlength="8">
+          <button id="offline-btn-add" class="btn btn-gold btn-sm" style="width: 80px; height: 48px;">添加</button>
+        </div>
+      </div>
+
+      <!-- 玩家列表 -->
+      <div class="player-list" id="offline-player-list"></div>
+
+      <!-- 流水记录 -->
+      <div class="history-section" style="max-height: 180px;">
+        <div class="section-title-row">
+          <span class="section-title"><span>📜</span> 本局记账明细</span>
+          <button id="offline-btn-undo" class="btn btn-sm btn-outline" style="height: 26px; font-size: 11px;">↩️ 撤销上一笔</button>
+        </div>
+        <div id="offline-history-box">
+          <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">暂无记录</div>
+        </div>
+      </div>
+
+      <!-- 底部结账按钮 -->
+      <div class="room-bottom-bar" style="margin-top: auto;">
+        <button id="offline-btn-summary" class="btn btn-gold">📊 总结结算与最少转账方案</button>
+      </div>
+    </main>
+
+    <!-- 离线记账模态框 -->
+    <div class="modal-overlay" id="offline-modal-pay">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h2 class="modal-title" id="offline-pay-title">💸 记账支付</h2>
+          <button class="modal-close" id="offline-close-pay">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">付款人：</label>
+          <div id="offline-from-chips" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">收款人：</label>
+          <div id="offline-to-chips" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">金额 (元)：</label>
+          <input type="number" step="0.5" id="offline-pay-amount" class="custom-input" style="font-size: 24px; font-weight: bold; text-align: center;" placeholder="0.00">
+        </div>
+        <div class="chip-grid">
+          <button class="chip-btn" data-add="1">+1</button>
+          <button class="chip-btn" data-add="2">+2</button>
+          <button class="chip-btn" data-add="5">+5</button>
+          <button class="chip-btn" data-add="10">+10</button>
+          <button class="chip-btn" data-add="20">+20</button>
+          <button class="chip-btn" data-add="50">+50</button>
+          <button class="chip-btn" data-add="100">+100</button>
+          <button class="chip-btn" id="offline-chip-clear" style="font-size: 13px;">清空</button>
+        </div>
+        <button id="offline-submit-pay" class="btn btn-gold" style="width: 100%; margin-top: 10px;">确认转账记账</button>
+      </div>
+    </div>
+
+    <!-- 离线总结模态框 -->
+    <div class="modal-overlay" id="offline-modal-summary">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h2 class="modal-title">📊 战报与极简清账</h2>
+          <button class="modal-close" id="offline-close-summary">✕</button>
+        </div>
+        <div class="summary-rank-list" id="offline-rank-box"></div>
+        <div class="settle-solution-card">
+          <div class="solution-title">✨ 最少转账路径方案</div>
+          <div class="solution-steps" id="offline-solution-box"></div>
+        </div>
+        <button id="offline-btn-reset" class="btn btn-danger" style="width: 100%; margin-top: 14px;">🔄 清空重新开局</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast-box"></div>
+  </div>
+
+  <script>
+    // 离线单机数据与逻辑
+    let users = JSON.parse(localStorage.getItem('offline_users') || '[]');
+    let history = JSON.parse(localStorage.getItem('offline_history') || '[]');
+    let fromUser = '', toUser = '';
+
+    if (users.length === 0) {
+      users = [
+        { name: '东风', balance: 0 },
+        { name: '南风', balance: 0 },
+        { name: '西风', balance: 0 },
+        { name: '北风', balance: 0 }
+      ];
+    }
+
+    function save() {
+      localStorage.setItem('offline_users', JSON.stringify(users));
+      localStorage.setItem('offline_history', JSON.stringify(history));
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast-box');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function render() {
+      const container = document.getElementById('offline-player-list');
+      container.innerHTML = users.map((u, i) => `
+        <div class="player-card">
+          <div class="player-left">
+            <div class="player-avatar" style="font-size: 20px;">🀄</div>
+            <span class="player-name">${u.name}</span>
+          </div>
+          <div class="player-right">
+            <span class="balance-amount ${u.balance > 0 ? 'positive' : (u.balance < 0 ? 'negative' : 'neutral')}">
+              ${u.balance > 0 ? '+' : ''}${u.balance.toFixed(1)} 元
+            </span>
+            <button class="btn-pay-direct" onclick="quickPay('${u.name}')">转账</button>
+          </div>
+        </div>
+      `).join('');
+
+      const hBox = document.getElementById('offline-history-box');
+      if (history.length === 0) {
+        hBox.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">暂无记录</div>';
+      } else {
+        hBox.innerHTML = [...history].reverse().slice(0, 15).map(h => `
+          <div class="history-item">
+            <span><strong>${h.from}</strong> ➔ <strong>${h.to}</strong></span>
+            <span style="color:var(--gold-300); font-weight:bold;">${h.amount} 元</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    window.quickPay = function(user) {
+      fromUser = user;
+      toUser = users.find(u => u.name !== user)?.name || '';
+      renderChips();
+      document.getElementById('offline-pay-amount').value = '';
+      document.getElementById('offline-modal-pay').classList.add('active');
+    };
+
+    function renderChips() {
+      const fBox = document.getElementById('offline-from-chips');
+      const tBox = document.getElementById('offline-to-chips');
+      fBox.innerHTML = users.map(u => `
+        <div class="tag-item ${u.name === fromUser ? 'active' : ''}" onclick="setFrom('${u.name}')">${u.name}</div>
+      `).join('');
+      tBox.innerHTML = users.filter(u => u.name !== fromUser).map(u => `
+        <div class="tag-item ${u.name === toUser ? 'active' : ''}" onclick="setTo('${u.name}')">${u.name}</div>
+      `).join('');
+    }
+
+    window.setFrom = function(u) {
+      fromUser = u;
+      if (toUser === u) toUser = users.find(x => x.name !== u)?.name || '';
+      renderChips();
+    };
+
+    window.setTo = function(u) {
+      toUser = u;
+      renderChips();
+    };
+
+    document.querySelectorAll('.chip-btn[data-add]').forEach(b => {
+      b.onclick = () => {
+        const val = parseFloat(b.dataset.add);
+        const inp = document.getElementById('offline-pay-amount');
+        inp.value = (parseFloat(inp.value || 0) + val).toFixed(1);
+      };
+    });
+    document.getElementById('offline-chip-clear').onclick = () => {
+      document.getElementById('offline-pay-amount').value = '';
+    };
+
+    document.getElementById('offline-btn-add').onclick = () => {
+      const inp = document.getElementById('offline-name-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      if (users.some(u => u.name === val)) return toast('该名字已存在');
+      users.push({ name: val, balance: 0 });
+      inp.value = '';
+      save();
+      render();
+      toast('添加成功');
+    };
+
+    document.getElementById('offline-submit-pay').onclick = () => {
+      const amt = parseFloat(document.getElementById('offline-pay-amount').value);
+      if (!amt || amt <= 0 || !fromUser || !toUser) return toast('请输入正确信息');
+      const f = users.find(u => u.name === fromUser);
+      const t = users.find(u => u.name === toUser);
+      f.balance = Math.round((f.balance - amt) * 100) / 100;
+      t.balance = Math.round((t.balance + amt) * 100) / 100;
+      history.push({ from: fromUser, to: toUser, amount: amt, time: Date.now() });
+      save();
+      render();
+      document.getElementById('offline-modal-pay').classList.remove('active');
+      toast('记账完成');
+    };
+
+    document.getElementById('offline-btn-undo').onclick = () => {
+      if (history.length === 0) return toast('暂无可撤销记录');
+      const last = history.pop();
+      const f = users.find(u => u.name === last.from);
+      const t = users.find(u => u.name === last.to);
+      if (f) f.balance = Math.round((f.balance + last.amount) * 100) / 100;
+      if (t) t.balance = Math.round((t.balance - last.amount) * 100) / 100;
+      save();
+      render();
+      toast('已撤销上一笔');
+    };
+
+    document.getElementById('offline-btn-summary').onclick = () => {
+      const sorted = [...users].sort((a,b) => b.balance - a.balance);
+      document.getElementById('offline-rank-box').innerHTML = sorted.map((u, i) => `
+        <div class="rank-item">
+          <span>${i === 0 && u.balance > 0 ? '👑 ' : ''}${u.name}</span>
+          <span style="font-weight:bold; color:${u.balance >= 0 ? 'var(--win-color)' : 'var(--lose-color)'}">
+            ${u.balance > 0 ? '+' : ''}${u.balance.toFixed(1)} 元
+          </span>
+        </div>
+      `).join('');
+
+      // 最优清账算法
+      const cred = [], deb = [];
+      users.forEach(u => {
+        const b = Math.round(u.balance * 100);
+        if (b > 0) cred.push({ name: u.name, amt: b });
+        else if (b < 0) deb.push({ name: u.name, amt: -b });
+      });
+      cred.sort((a,b) => b.amt - a.amt);
+      deb.sort((a,b) => b.amt - a.amt);
+
+      const steps = [];
+      let i = 0, j = 0;
+      while (i < deb.length && j < cred.length) {
+        const d = deb[i], c = cred[j];
+        const m = Math.min(d.amt, c.amt);
+        steps.push(`${d.name} ➔ 转给 ${c.name}：${(m/100).toFixed(1)} 元`);
+        d.amt -= m;
+        c.amt -= m;
+        if (d.amt === 0) i++;
+        if (c.amt === 0) j++;
+      }
+
+      document.getElementById('offline-solution-box').innerHTML = steps.length ? 
+        steps.map(s => `<div class="step-row">${s}</div>`).join('') :
+        '<div style="text-align:center; color:var(--text-muted);">账目已平，无需结算</div>';
+
+      document.getElementById('offline-modal-summary').classList.add('active');
+    };
+
+    document.getElementById('offline-btn-reset').onclick = () => {
+      if (confirm('确认清空本局所有记录重新开始吗？')) {
+        users.forEach(u => u.balance = 0);
+        history = [];
+        save();
+        render();
+        document.getElementById('offline-modal-summary').classList.remove('active');
+        toast('新一局已就绪');
+      }
+    };
+
+    document.getElementById('offline-close-pay').onclick = () => document.getElementById('offline-modal-pay').classList.remove('active');
+    document.getElementById('offline-close-summary').onclick = () => document.getElementById('offline-modal-summary').classList.remove('active');
+
+    render();
+  </script>
+</body>
+</html>

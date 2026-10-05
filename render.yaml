@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: laicai-poker-ledger
+    runtime: python
+    buildCommand: ""
+    startCommand: "python -u server.py"
+    envVars:
+      - key: PORT
+        value: 10000
+    plan: free
