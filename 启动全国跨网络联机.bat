@@ -6,7 +6,7 @@ echo   🀄【来财】全国跨网络/手机流量联机服务启动中... 🀄
 echo ========================================================
 echo.
 echo [1/2] 正在启动本地记账服务...
-start /b python -u server.py 8080 >nul 2>&1
+start /b python -u server.py 8888 >nul 2>&1
 
 echo [2/2] 正在为您生成全球公网专属网址(无需同一WiFi/支持手机流量)...
 echo --------------------------------------------------------
@@ -15,6 +15,6 @@ echo 就是全国通用网址！发送给微信群牌友，任何手机点开都
 echo --------------------------------------------------------
 echo.
 
-ssh -o StrictHostKeyChecking=no -R 80:localhost:8080 nokey@localhost.run
+ssh -o StrictHostKeyChecking=no -R 80:localhost:8888 nokey@localhost.run
 
 pause

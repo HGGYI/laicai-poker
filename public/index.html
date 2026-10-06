@@ -3,330 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>来财 - 多人实时打牌记账神器</title>
+  <title>来财 - 打牌记账</title>
   
-  <!-- iOS 沉浸式 Web App 与图标支持 -->
+  <!-- iOS 独立全屏 App 适配 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="来财记账">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <link rel="icon" type="image/svg+xml" href="./icons/logo.svg">
-  
-  <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#131018">
+  <meta name="theme-color" content="#f7f4ee">
 
-  <!-- 样式文件 -->
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div id="app-container">
     
-    <!-- 顶部状态栏 -->
+    <!-- 顶部状态栏 (纯净文字，无图标) -->
     <header class="app-header">
-      <div class="brand" id="brand-logo" title="点击查看局域网连接助手">
-        <img src="./icons/logo.svg" alt="来财" class="brand-icon">
-        <span class="brand-name">來財</span>
+      <div>
+        <span class="brand-text">来财</span>
+        <span class="brand-subtext">打牌记账</span>
       </div>
-
-      <div class="header-user" id="header-user-badge">
-        <span class="user-avatar" id="header-avatar">🧧</span>
-        <span class="user-name" id="header-username">未登录</span>
-      </div>
+      <div class="header-user-tag" id="top-user-name">未加入房间</div>
     </header>
 
-    <!-- 视图1: 大厅界面 (未加入房间时) -->
+    <!-- 视图A: 大厅界面 (未进房间时显示) -->
     <main id="view-lobby" class="view-container">
-      
-      <!-- iOS / 移动端添加主屏幕提示 -->
-      <div class="pwa-install-banner" id="pwa-banner">
-        <span>💡 建议在浏览器菜单中选择「添加到主屏幕」，如同原生App般全屏使用！</span>
-        <span style="cursor:pointer; font-weight:bold; padding-left:8px;" onclick="document.getElementById('pwa-banner').style.display='none'">✕</span>
-      </div>
+      <div class="clean-card">
+        <h2 class="card-title">开始牌局</h2>
+        <p class="card-desc">多人在线实时记账，系统自动计算最简结账方案</p>
 
-      <div class="lobby-card">
-        <div class="lobby-hero">
-          <div class="hero-coin">🀄</div>
-          <h1 class="lobby-title">打牌记账 · 实时对账</h1>
-          <p class="lobby-subtitle">一人记账，多人实时同步，最少转账结清</p>
+        <div class="input-group">
+          <label class="input-label" for="input-nickname">玩家名字 / 昵称</label>
+          <input type="text" id="input-nickname" class="clean-input" placeholder="输入您的名字 (如: 东哥、老王)" maxlength="10">
         </div>
 
-        <!-- 昵称设置 -->
-        <div class="form-group">
-          <label class="form-label" for="input-nickname">您的牌友名字 / 昵称</label>
-          <input type="text" id="input-nickname" class="custom-input" placeholder="例如：雀神小王、发财、东哥" maxlength="10">
-        </div>
-
-        <!-- 头像挑选 -->
-        <div class="form-group">
-          <label class="form-label">挑选您的开运头像</label>
-          <div class="avatar-grid" id="avatar-grid">
-            <div class="avatar-item active" data-avatar="🧧">🧧</div>
-            <div class="avatar-item" data-avatar="🀄">🀄</div>
-            <div class="avatar-item" data-avatar="💰">💰</div>
-            <div class="avatar-item" data-avatar="👑">👑</div>
-            <div class="avatar-item" data-avatar="🐱">🐱</div>
-            <div class="avatar-item" data-avatar="🪙">🪙</div>
-          </div>
-        </div>
-
-        <!-- 创建房间按钮 -->
-        <button id="btn-create-room" class="btn btn-gold" style="width: 100%; margin-top: 10px;">
-          🎲 创建新房间 (随机6位房号)
+        <button id="btn-create-room" class="btn btn-primary" style="margin-top: 10px;">
+          创建新房间 (随机6位房号)
         </button>
 
-        <div class="divider">或者加入已有牌局</div>
+        <div style="text-align: center; margin: 18px 0; color: var(--text-muted); font-size: 13px;">
+          或者加入已有牌局
+        </div>
 
-        <!-- 输入房号加入 -->
-        <div class="input-row">
-          <input type="tel" id="input-room-id" class="custom-input" placeholder="输入6位数房间号" maxlength="6" pattern="[0-9]*">
-          <button id="btn-join-room" class="btn btn-outline" style="width: 110px;">
+        <div style="display: flex; gap: 8px;">
+          <input type="tel" id="input-room-id" class="clean-input" placeholder="输入6位房间号" maxlength="6" pattern="[0-9]*">
+          <button id="btn-join-room" class="btn btn-secondary" style="width: 110px;">
             进入房间
           </button>
         </div>
 
-        <!-- 历史房间快捷进入 -->
-        <div id="history-room-box" style="margin-top: 16px; display: none; text-align: center;">
-          <span style="font-size: 12px; color: var(--text-muted);">最近参与：</span>
-          <button id="btn-quick-rejoin" class="btn btn-sm btn-outline" style="display: inline-flex; margin-left: 6px;">
-            房间号 <span id="quick-rejoin-id"></span>
+        <div id="rejoin-box" style="margin-top: 16px; display: none; text-align: center;">
+          <button id="btn-rejoin" class="btn btn-sm btn-outline" style="margin: 0 auto;">
+            快速回到上一局 (<span id="rejoin-id"></span>)
           </button>
         </div>
-
       </div>
-
-      <div style="margin-top: auto; padding: 20px 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-        <button id="btn-show-lan-guide" class="btn btn-sm btn-outline">
-          📶 手机扫码联机指引
-        </button>
-        <a href="./laicai-poker-ledger.zip" download="laicai-poker-ledger.zip" class="btn btn-sm btn-outline" style="text-decoration: none; color: var(--gold-200);">
-          📦 下载安装压缩包
-        </a>
-        <a href="./standalone.html" class="btn btn-sm btn-outline" style="text-decoration: none; color: var(--gold-300);">
-          📴 单机离线记账
-        </a>
-      </div>
-
     </main>
 
-    <!-- 视图2: 房间牌桌界面 (已进入房间) -->
+    <!-- 视图B: 房间内容区 (通过底栏4个图标切换) -->
     <main id="view-room" class="view-container" style="display: none;">
       
-      <!-- 房间顶部信息条 -->
-      <div class="room-topbar">
-        <div class="room-badge" id="btn-room-info-click" title="点击查看房间二维码与邀请链接">
-          <span class="room-label">房间号 (点击扫码)</span>
-          <div class="room-number">
-            <span id="room-id-display">------</span>
-            <span style="font-size: 14px;">📷</span>
+      <!-- 房间顶条 (房号与退出) -->
+      <div class="room-header-bar">
+        <div class="room-id-box">
+          <span class="room-id-label">当前房间号</span>
+          <span class="room-id-value" id="room-number-display">------</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button id="btn-copy-room" class="btn btn-sm btn-secondary">复制房号</button>
+          <button id="btn-leave-room" class="btn btn-sm btn-secondary">退出</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: 牌桌看板 -->
+      <section id="tab-table" class="tab-content-pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: var(--text-secondary);">玩家账目看板</span>
+          <span style="font-size: 12px; color: var(--text-muted);" id="sync-indicator">实时同步中</span>
+        </div>
+        <div class="player-list" id="player-list-box">
+          <!-- 动态渲染每位玩家 -->
+        </div>
+      </section>
+
+      <!-- Tab 2: 记账转账 -->
+      <section id="tab-pay" class="tab-content-pane" style="display: none;">
+        <div class="clean-card">
+          <h2 class="card-title">记账支付</h2>
+          <p class="card-desc">选择收款人并输入金额，各玩家余额实时自动结算</p>
+
+          <div class="input-group">
+            <label class="input-label">选择收款人</label>
+            <div class="target-chips-wrap" id="pay-targets-wrap">
+              <!-- 动态生成收款人单选药丸 -->
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <label class="input-label" style="margin-bottom: 0;">转账金额 (元)</label>
+              <span id="btn-clear-num" style="font-size: 12px; color: var(--accent-warm); cursor: pointer;">清空</span>
+            </div>
+            <input type="number" step="0.5" id="input-amount" class="clean-input" style="font-size: 24px; font-weight: 800; text-align: center; height: 54px;" placeholder="0.00">
+          </div>
+
+          <!-- 快捷筹码加注盘 -->
+          <div class="chip-grid">
+            <button class="chip-btn" data-val="1">+1</button>
+            <button class="chip-btn" data-val="2">+2</button>
+            <button class="chip-btn" data-val="5">+5</button>
+            <button class="chip-btn" data-val="10">+10</button>
+            <button class="chip-btn" data-val="20">+20</button>
+            <button class="chip-btn" data-val="50">+50</button>
+            <button class="chip-btn" data-val="100">+100</button>
+            <button class="chip-btn" id="btn-half-num" style="font-size: 13px;">减半</button>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">备注说明 (选填)</label>
+            <input type="text" id="input-note" class="clean-input" placeholder="例如: 自摸、暗杠、买马">
+          </div>
+
+          <button id="btn-confirm-pay" class="btn btn-primary" style="height: 50px; margin-top: 6px;">
+            确认记账
+          </button>
+
+          <!-- 快捷通吃通赔 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+            <button id="btn-win-all" class="btn btn-secondary btn-sm" style="height: 40px;">自摸 (收所有人)</button>
+            <button id="btn-lose-all" class="btn btn-secondary btn-sm" style="height: 40px;">包牌 (赔所有人)</button>
           </div>
         </div>
+      </section>
 
-        <div class="room-actions">
-          <button class="icon-btn" id="btn-undo-action" title="撤销上一笔">↩️</button>
-          <button class="icon-btn" id="btn-show-summary" title="总结账单">📊</button>
-          <button class="icon-btn" id="btn-share-room" title="分享/复制链接">🔗</button>
-          <button class="icon-btn" id="btn-leave-room" title="离开房间">🚪</button>
-        </div>
-      </div>
-
-      <!-- 实时玩家列表 (输赢看板) -->
-      <div class="player-list" id="player-list-container">
-        <!-- 动态渲染每个玩家卡片 -->
-      </div>
-
-      <!-- 实时流水记录栏 -->
-      <div class="history-section">
-        <div class="section-title-row">
-          <span class="section-title">
-            <span>📜</span> 实时记账明细 (<span id="tx-count">0</span>笔)
+      <!-- Tab 3: 明细流水 -->
+      <section id="tab-history" class="tab-content-pane" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: var(--text-secondary);">
+            本局账本流水 (<span id="history-count">0</span>笔)
           </span>
-          <span style="font-size: 11px; color: var(--text-muted);" id="sync-status">● 实时同步中</span>
+          <button id="btn-undo-tx" class="btn btn-sm btn-outline">撤销上一笔</button>
         </div>
-        <div id="tx-history-container">
-          <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 12px 0;">
-            牌局刚开始，暂无转账记录
+        <div class="tx-list" id="tx-list-box">
+          <!-- 动态流水项 -->
+        </div>
+      </section>
+
+      <!-- Tab 4: 结算总结 -->
+      <section id="tab-summary" class="tab-content-pane" style="display: none;">
+        <div class="clean-card">
+          <h2 class="card-title">牌局结算战报</h2>
+          <p class="card-desc">自动计算以最少转账次数完成全员清账</p>
+
+          <div id="summary-rank-box" style="margin-bottom: 14px;">
+            <!-- 排名成绩列表 -->
           </div>
-        </div>
-      </div>
 
-      <!-- 底部常驻核心操作 -->
-      <div class="room-bottom-bar">
-        <!-- 快捷自摸通吃/通赔按钮 -->
-        <div class="quick-action-row">
-          <button class="btn-quick win" id="btn-quick-win-all">
-            🀄 我胡了 (收所有人)
+          <div class="settle-card">
+            <div style="font-size: 13px; font-weight: 700; color: var(--accent-warm);">
+              最简转账结账建议
+            </div>
+            <div id="settle-steps-box">
+              <!-- 结账路径步骤 -->
+            </div>
+          </div>
+
+          <button id="btn-copy-report" class="btn btn-primary" style="margin-top: 10px;">
+            复制微信战报文字
           </button>
-          <button class="btn-quick lose" id="btn-quick-lose-all">
-            💥 我包牌 (赔所有人)
+
+          <button id="btn-reset-room" class="btn btn-danger" style="margin-top: 10px;">
+            重置房间金额 (开启新一局)
           </button>
         </div>
-
-        <!-- 记账主按钮 -->
-        <button id="btn-open-pay-modal" class="btn btn-gold">
-          ⚡ 记一笔 (选择收款人支付)
-        </button>
-      </div>
+      </section>
 
     </main>
 
-    <!-- 弹窗1: 记账/支付模态框 (Pay Modal) -->
-    <div class="modal-overlay" id="modal-pay">
-      <div class="modal-sheet">
-        <div class="modal-header">
-          <h2 class="modal-title" id="pay-modal-title">💸 记账支付</h2>
-          <button class="modal-close" id="btn-close-pay">✕</button>
-        </div>
+    <!-- =========================================================
+         核心要求2：全站仅保留最底部的四个图标导航栏！
+         ========================================================= -->
+    <nav class="bottom-nav-bar" id="app-bottom-nav" style="display: none;">
+      <button class="nav-tab-btn active" data-tab="tab-table" id="nav-btn-table">
+        <span class="nav-tab-icon">🀄</span>
+        <span class="nav-tab-label">牌桌</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-pay" id="nav-btn-pay">
+        <span class="nav-tab-icon">💸</span>
+        <span class="nav-tab-label">记账</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-history" id="nav-btn-history">
+        <span class="nav-tab-icon">📜</span>
+        <span class="nav-tab-label">明细</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-summary" id="nav-btn-summary">
+        <span class="nav-tab-icon">📊</span>
+        <span class="nav-tab-label">结算</span>
+      </button>
+    </nav>
 
-        <!-- 支付模式指示 / 目标选择 -->
-        <div class="form-group" id="group-target-select">
-          <label class="form-label" id="label-target-select">向谁支付 (收款人)</label>
-          <div id="pay-target-chips" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <!-- 动态生成房间内其他玩家单选标签 -->
-          </div>
-        </div>
-
-        <!-- 金额输入与快捷筹码加注 -->
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label class="form-label" style="margin-bottom: 0;">支付金额 (元)</label>
-            <span style="font-size: 12px; color: var(--gold-400); cursor: pointer;" id="btn-clear-amount">清空</span>
-          </div>
-          <div style="position: relative;">
-            <input type="number" step="0.5" id="input-pay-amount" class="custom-input" style="font-size: 26px; font-weight: 800; color: var(--gold-300); text-align: center; height: 56px;" placeholder="0.00">
-            <span style="position: absolute; left: 16px; top: 15px; font-size: 20px; font-weight: 800; color: var(--gold-400);">¥</span>
-          </div>
-        </div>
-
-        <!-- 快捷筹码键盘 (+1, +2, +5, +10, +20, +50, +100) -->
-        <div class="chip-grid">
-          <button class="chip-btn" data-add="1">+1</button>
-          <button class="chip-btn" data-add="2">+2</button>
-          <button class="chip-btn" data-add="5">+5</button>
-          <button class="chip-btn" data-add="10">+10</button>
-          <button class="chip-btn" data-add="20">+20</button>
-          <button class="chip-btn" data-add="50">+50</button>
-          <button class="chip-btn" data-add="100">+100</button>
-          <button class="chip-btn" id="btn-chip-half" style="font-size: 13px;">÷2(对半)</button>
-        </div>
-
-        <!-- 常用备注标签 -->
-        <div class="form-group">
-          <label class="form-label">牌局说明 / 备注</label>
-          <div class="tag-scroll" id="pay-tag-list">
-            <span class="tag-item active" data-tag="牌局结算">牌局结算</span>
-            <span class="tag-item" data-tag="自摸">自摸</span>
-            <span class="tag-item" data-tag="点炮">点炮</span>
-            <span class="tag-item" data-tag="暗杠">暗杠</span>
-            <span class="tag-item" data-tag="明杠">明杠</span>
-            <span class="tag-item" data-tag="炸弹">炸弹</span>
-            <span class="tag-item" data-tag="底分">底分</span>
-            <span class="tag-item" data-tag="买马">买马</span>
-          </div>
-          <input type="text" id="input-pay-note" class="custom-input" style="height: 38px; font-size: 13px;" placeholder="自定义备注 (选填)">
-        </div>
-
-        <!-- 确认支付按钮 -->
-        <button id="btn-submit-pay" class="btn btn-gold" style="width: 100%; margin-top: 12px; height: 50px;">
-          确认记账 💰
-        </button>
-      </div>
-    </div>
-
-    <!-- 弹窗2: 战报总结与最优清账 (Summary Modal) -->
-    <div class="modal-overlay" id="modal-summary">
-      <div class="modal-sheet">
-        <div class="modal-header">
-          <h2 class="modal-title">📊 牌局战报与清账对账</h2>
-          <button class="modal-close" id="btn-close-summary">✕</button>
-        </div>
-
-        <!-- 排名列表 -->
-        <div class="summary-rank-list" id="summary-rank-container">
-          <!-- 动态渲染战报排名 -->
-        </div>
-
-        <!-- 灵魂功能：最优清账方案（最少转账路径） -->
-        <div class="settle-solution-card">
-          <div class="solution-title">
-            <span>✨</span> 智能最优结账 (最少转账次数)
-          </div>
-          <div class="solution-steps" id="settle-steps-container">
-            <!-- 动态渲染结账步骤 -->
-          </div>
-        </div>
-
-        <!-- 战报分享操作 -->
-        <div style="display: flex; gap: 10px; margin-top: 16px;">
-          <button id="btn-copy-summary" class="btn btn-outline" style="flex: 1; font-size: 14px;">
-            📋 复制微信战报
-          </button>
-          <button id="btn-generate-poster" class="btn btn-gold" style="flex: 1; font-size: 14px;">
-            🖼️ 战报海报
-          </button>
-        </div>
-
-        <!-- 重新开局重置 -->
-        <button id="btn-reset-room" class="btn btn-danger" style="width: 100%; margin-top: 12px; height: 42px; font-size: 14px;">
-          🔄 重置所有玩家金额 (新开一局)
-        </button>
-      </div>
-    </div>
-
-    <!-- 弹窗3: 房间二维码与局域网邀请 (QR / Invite Modal) -->
-    <div class="modal-overlay" id="modal-qr">
-      <div class="modal-sheet">
-        <div class="modal-header">
-          <h2 class="modal-title">📱 邀请牌友扫码进房</h2>
-          <button class="modal-close" id="btn-close-qr">✕</button>
-        </div>
-
-        <div class="qr-container">
-          <div class="qr-canvas-box">
-            <canvas id="qr-canvas" width="220" height="220"></canvas>
-          </div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--gold-300); letter-spacing: 2px; margin-bottom: 6px;">
-            房间号：<span id="qr-room-number">------</span>
-          </div>
-          <p class="qr-tip" id="qr-network-tip">
-            手机微信/Safari相机扫描上方二维码即可直接进房！<br>
-            或让牌友连接同一局域网Wifi访问。
-          </p>
-          <button id="btn-copy-room-link" class="btn btn-outline" style="width: 100%; margin-top: 14px;">
-            📋 复制房间直达链接
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 弹窗4: 局域网连接助手 (LAN Guide Modal) -->
-    <div class="modal-overlay" id="modal-lan-guide">
-      <div class="modal-sheet">
-        <div class="modal-header">
-          <h2 class="modal-title">📶 多手机联机使用指引</h2>
-          <button class="modal-close" id="btn-close-lan-guide">✕</button>
-        </div>
-        <div style="color: var(--text-main); font-size: 14px; line-height: 1.7;">
-          <p style="margin-bottom: 12px;"><strong>第 1 步：连接同一个网络</strong><br>
-          让打牌的所有手机（苹果或安卓）连接同一个 Wifi 路由器，或连接某一部手机开启的“个人热点”。</p>
-          <p style="margin-bottom: 12px;"><strong>第 2 步：打开浏览器</strong><br>
-          在手机 Safari、微信或系统浏览器中输入电脑服务提示的网址（或扫码）。</p>
-          <p style="margin-bottom: 12px;"><strong>第 3 步：添加到手机主屏幕（推荐）</strong><br>
-          • <strong>苹果 iPhone</strong>：点击 Safari 底部的「分享」图标 ➔ 选择「添加到主屏幕」即可像App一样在桌面全屏使用！<br>
-          • <strong>安卓 Android</strong>：在浏览器右上角「⋮」菜单中选择「添加到主屏幕」或「安装应用」。</p>
-          <div style="background: rgba(255,255,255,0.06); padding: 10px; border-radius: 8px; margin-top: 10px;" id="lan-ip-list-box">
-            正在获取可用局域网地址...
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 全局轻提示 Toast -->
-    <div class="toast" id="toast-box">提示信息</div>
+    <!-- 提示组件 -->
+    <div class="toast-box" id="toast-el">提示</div>
 
   </div>
 
-  <!-- 核心逻辑脚本 -->
   <script src="./app.js"></script>
 </body>
 </html>

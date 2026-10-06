@@ -7,7 +7,7 @@ echo ========================================================
 echo 正在启动局域网联机服务，请稍候...
 echo.
 
-start "" "http://localhost:8080"
-python server.py 8080
+start "" "http://localhost:8888"
+python server.py 8888
 
 pause

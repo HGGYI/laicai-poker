@@ -508,8 +508,8 @@ def run_server(port=8080):
         server.server_close()
 
 if __name__ == '__main__':
-    # 优先读取云平台环境变量 PORT (如 Render, Koyeb, Railway 等)，本地默认 8080
-    port = int(os.environ.get("PORT", 8080))
+    # 优先读取云平台环境变量 PORT (如 Render, Koyeb 等)，本地默认使用独立的 8888 端口，避免与哈基米(8080)冲突
+    port = int(os.environ.get("PORT", 8888))
     if len(sys.argv) > 1:
         try:
             port = int(sys.argv[1])
